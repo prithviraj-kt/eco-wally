@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Upload, Leaf, Calculator, Zap } from 'lucide-react';
-
+import main from "./Model"
 function ProductUpload() {
   const { dispatch, addGreenCoins } = useApp();
   const [formData, setFormData] = useState({
@@ -29,32 +29,34 @@ function ProductUpload() {
     });
   };
 
-  const generateEcoData = () => {
+  const generateEcoData = async () => {
     setIsGenerating(true);
+    const result = JSON.parse(await main(JSON.stringify({name: formData['name'], category: formData['category'], description: formData['description']})))
+    
     
     // Simulate AI processing
     setTimeout(() => {
       // Mock AI generation based on product name and category
-      const keywords = formData.name.toLowerCase();
-      let ecoRating = 3;
-      let carbonFootprint = 0;
+      // const keywords = formData.name.toLowerCase();
+      let ecoRating = result['eco_rating'];
+      let carbonFootprint = result['generated_co2'] - result['average_co2'];
       
       // Eco-friendly keywords boost rating
-      if (keywords.includes('organic') || keywords.includes('bamboo') || 
-          keywords.includes('solar') || keywords.includes('led') ||
-          keywords.includes('sustainable') || keywords.includes('eco')) {
-        ecoRating = 5;
-        carbonFootprint = -Math.random() * 5 - 1; // Negative impact (saves carbon)
-      } else if (keywords.includes('recycled') || keywords.includes('natural')) {
-        ecoRating = 4;
-        carbonFootprint = -Math.random() * 3;
-      } else if (keywords.includes('plastic') || keywords.includes('fast')) {
-        ecoRating = 1;
-        carbonFootprint = Math.random() * 5 + 1; // Positive impact (adds carbon)
-      } else {
-        ecoRating = Math.floor(Math.random() * 3) + 2; // 2-4 rating
-        carbonFootprint = (Math.random() - 0.5) * 4; // -2 to +2
-      }
+      // if (keywords.includes('organic') || keywords.includes('bamboo') || 
+      //     keywords.includes('solar') || keywords.includes('led') ||
+      //     keywords.includes('sustainable') || keywords.includes('eco')) {
+      //   ecoRating = 5;
+      //   carbonFootprint = -Math.random() * 5 - 1; // Negative impact (saves carbon)
+      // } else if (keywords.includes('recycled') || keywords.includes('natural')) {
+      //   ecoRating = 4;
+      //   carbonFootprint = -Math.random() * 3;
+      // } else if (keywords.includes('plastic') || keywords.includes('fast')) {
+      //   ecoRating = 1;
+      //   carbonFootprint = Math.random() * 5 + 1; // Positive impact (adds carbon)
+      // } else {
+      //   ecoRating = Math.floor(Math.random() * 3) + 2; // 2-4 rating
+      //   carbonFootprint = (Math.random() - 0.5) * 4; // -2 to +2
+      // }
       
       const greenCoins = Math.max(1, ecoRating * 5);
       
