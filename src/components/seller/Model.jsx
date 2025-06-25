@@ -28,8 +28,10 @@ Eco Rating Logic:
 - 5 if generated CO2 < 50% of category average.
 - 4 if 50–90% of category average.
 - 3 if within ±10% of average.
-- 2 if 10–50% above average.
-- 1 if > 50% above average.
+- 2 if 10–50% above average.(Here eco rating has to be 0)
+- 1 if > 50% above average. (Here eco rating has to be 0)
+- 0 if > 70 % above average.(Here eco rating has to be 0)
+
 
 Return JSON only in the format:
 

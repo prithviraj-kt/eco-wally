@@ -32,33 +32,19 @@ function ProductUpload() {
   const generateEcoData = async () => {
     setIsGenerating(true);
     const result = JSON.parse(await main(JSON.stringify({name: formData['name'], category: formData['category'], description: formData['description']})))
-    
+    console.log(result)
     
     // Simulate AI processing
-    setTimeout(() => {
-      // Mock AI generation based on product name and category
-      // const keywords = formData.name.toLowerCase();
+    // setTimeout(() => {
+      
       let ecoRating = result['eco_rating'];
       let carbonFootprint = result['generated_co2'] - result['average_co2'];
-      
-      // Eco-friendly keywords boost rating
-      // if (keywords.includes('organic') || keywords.includes('bamboo') || 
-      //     keywords.includes('solar') || keywords.includes('led') ||
-      //     keywords.includes('sustainable') || keywords.includes('eco')) {
-      //   ecoRating = 5;
-      //   carbonFootprint = -Math.random() * 5 - 1; // Negative impact (saves carbon)
-      // } else if (keywords.includes('recycled') || keywords.includes('natural')) {
-      //   ecoRating = 4;
-      //   carbonFootprint = -Math.random() * 3;
-      // } else if (keywords.includes('plastic') || keywords.includes('fast')) {
-      //   ecoRating = 1;
-      //   carbonFootprint = Math.random() * 5 + 1; // Positive impact (adds carbon)
-      // } else {
-      //   ecoRating = Math.floor(Math.random() * 3) + 2; // 2-4 rating
-      //   carbonFootprint = (Math.random() - 0.5) * 4; // -2 to +2
-      // }
-      
-      const greenCoins = Math.max(1, ecoRating * 5);
+      var greenCoins = 0
+      if (ecoRating >2) {
+      greenCoins = Math.max(1, ecoRating * 5);
+      } else {
+        greenCoins = 0; // Set eco rating to 0 for low-rated products
+      }
       
       setAiGenerated({
         ecoRating,
@@ -67,7 +53,7 @@ function ProductUpload() {
       });
       
       setIsGenerating(false);
-    }, 2000);
+    // }, 2000);
   };
 
   const handleSubmit = (e) => {
@@ -286,7 +272,7 @@ function ProductUpload() {
               </div>
             )}
 
-            {aiGenerated.ecoRating > 0 && (
+            {aiGenerated.ecoRating  && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                   <div className="flex items-center space-x-2 mb-2">
