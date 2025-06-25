@@ -151,7 +151,10 @@ function Navbar() {
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                <div
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+                  onMouseLeave={() => setShowUserMenu(false)}
+                >
                   <button
                     onClick={toggleUserType}
                     className="flex items-center space-x-2 w-full px-4 py-2 text-left hover:bg-gray-50"
