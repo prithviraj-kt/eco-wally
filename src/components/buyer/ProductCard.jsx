@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { ShoppingCart, Leaf, TrendingDown, TrendingUp, Coins } from 'lucide-react';
 
 function ProductCard({ product }) {
-  const { dispatch, addGreenCoins } = useApp();
+  const { dispatch, addGreenCoins, products, orders } = useApp();
 
   const handleAddToCart = () => {
     dispatch({ type: 'ADD_TO_CART', payload: product });
@@ -27,6 +27,30 @@ function ProductCard({ product }) {
 
   const isEcoFriendly = product.ecoRating >= 3;
   const carbonImpact = product.carbonFootprint;
+
+  // --- Green Certificate Logic ---
+  // Find all products by this seller
+  const sellerProducts = products.filter(p => p.seller === product.seller);
+  const sellerProductIds = sellerProducts.map(p => p.id);
+  // Collect all reviews for seller's products
+  const productReviewMap = {};
+  (orders || []).forEach(order => {
+    if (order.reviews) {
+      order.reviews.forEach(r => {
+        if (sellerProductIds.includes(r.productId)) {
+          if (!productReviewMap[r.productId]) productReviewMap[r.productId] = [];
+          productReviewMap[r.productId].push(r);
+        }
+      });
+    }
+  });
+  // Count how many seller products have at least 2 reviews with rating >= 4
+  const eligibleProducts = sellerProducts.filter(p => {
+    const reviews = productReviewMap[p.id] || [];
+    const positive = reviews.filter(r => r.rating >= 4);
+    return positive.length >= 2;
+  });
+  const isCertifiedGreenSeller = eligibleProducts.length >= 3;
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
@@ -118,10 +142,15 @@ function ProductCard({ product }) {
         </div>
 
         {/* Seller Info */}
-        <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="mt-3 pt-3 border-t border-gray-200 flex items-center space-x-2">
           <span className="text-xs text-gray-500">
             Sold by {product.seller}
           </span>
+          {isCertifiedGreenSeller && (
+            <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-semibold border border-green-300">
+              Certified Green Seller
+            </span>
+          )}
         </div>
       </div>
     </div>
