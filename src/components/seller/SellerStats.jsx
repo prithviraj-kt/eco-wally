@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   DollarSign, 
@@ -9,9 +9,11 @@ import {
   Users,
   Star
 } from 'lucide-react';
+import { Modal } from '../common/Notifications';
 
 function SellerStats() {
-  const { user, products } = useApp();
+  const { user, products, orders } = useApp();
+  const [showCertModal, setShowCertModal] = useState(false);
   
   // Mock seller stats
   const sellerProducts = products.filter(p => p.seller.includes(user?.name?.split(' ')[0] || ''));
@@ -19,6 +21,29 @@ function SellerStats() {
   const totalSales = 127;
   const ecoProducts = sellerProducts.filter(p => p.ecoRating >= 3).length;
   const avgEcoRating = 4.2;
+
+  // --- Green Certificate Logic ---
+  // Map productId to product for this seller
+  const sellerProductIds = sellerProducts.map(p => p.id);
+  // Collect all reviews for seller's products
+  const productReviewMap = {};
+  (orders || []).forEach(order => {
+    if (order.reviews) {
+      order.reviews.forEach(r => {
+        if (sellerProductIds.includes(r.productId)) {
+          if (!productReviewMap[r.productId]) productReviewMap[r.productId] = [];
+          productReviewMap[r.productId].push(r);
+        }
+      });
+    }
+  });
+  // Count how many seller products have at least 2 reviews with rating >= 4
+  const eligibleProducts = sellerProducts.filter(p => {
+    const reviews = productReviewMap[p.id] || [];
+    const positive = reviews.filter(r => r.rating >= 4);
+    return positive.length >= 2;
+  });
+  const hasGreenCertificate = eligibleProducts.length >= 3;
 
   const stats = [
     {
@@ -53,6 +78,40 @@ function SellerStats() {
 
   return (
     <div className="space-y-6">
+      {/* Green Certificate Badge */}
+      {hasGreenCertificate && (
+        <div className="flex items-center space-x-3 bg-green-100 border border-green-300 rounded-lg p-4 mb-4">
+          <Award className="h-8 w-8 text-green-600" />
+          <div>
+            <div className="font-bold text-green-800 text-lg">Green Certificate Awarded!</div>
+            <button
+              className="ml-4 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => setShowCertModal(true)}
+            >
+              View Certificate
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Certificate Modal */}
+      {showCertModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowCertModal(false)}>&times;</button>
+            <div className="flex flex-col items-center">
+              <Award className="h-12 w-12 text-green-600 mb-2" />
+              <h2 className="text-2xl font-bold text-green-800 mb-2">Green Seller Certificate</h2>
+              <p className="text-gray-700 mb-4 text-center">Congratulations, <span className="font-semibold">{user?.name}</span>!<br/>You have been awarded the Green Seller Certificate for consistently listing eco-friendly products and receiving positive feedback from buyers.</p>
+              <ul className="text-left text-gray-600 mb-4">
+                <li><b>Products listed:</b> {sellerProducts.length}</li>
+                <li><b>Eligible products:</b> {eligibleProducts.length}</li>
+                <li><b>Certificate criteria:</b> 3+ products, each with 2+ positive reviews</li>
+              </ul>
+              <div className="text-green-700 font-semibold">Keep up the great work for a greener planet!</div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
