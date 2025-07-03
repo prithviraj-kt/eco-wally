@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { coupons } from '../../data/dummyData';
 import { Gift, Check, Clock, Percent, Truck, DollarSign } from 'lucide-react';
 
 function CouponSelector() {
   const { user, dispatch } = useApp();
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [redeemedCoupon, setRedeemedCoupon] = useState(null);
   
   const canSelectCoupon = user?.greenCoins >= 100;
   const selectedCoupons = user?.selectedCoupons || [];
@@ -12,6 +14,8 @@ function CouponSelector() {
   const handleSelectCoupon = (coupon) => {
     if (canSelectCoupon) {
       dispatch({ type: 'SELECT_COUPON', payload: coupon });
+      setRedeemedCoupon(coupon);
+      setShowRedeemModal(true);
     }
   };
 
@@ -194,6 +198,27 @@ function CouponSelector() {
           </div>
         </div>
       </div>
+
+      {/* Redeem Confirmation Modal */}
+      {showRedeemModal && redeemedCoupon && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <Gift className="h-8 w-8 text-green-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Redemption Successful!</h3>
+            <p className="text-gray-700 mb-4">
+              You have redeemed <span className="font-bold text-green-700">{redeemedCoupon.title}</span> for 100 Green Coins.
+            </p>
+            <button
+              onClick={() => setShowRedeemModal(false)}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

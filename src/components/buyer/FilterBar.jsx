@@ -28,15 +28,17 @@ function FilterBar() {
             ))}
           </select>
 
-          {/* Eco Rating Filter */}
+          {/* Sort By Dropdown */}
           <select
             value={ecoFilter}
             onChange={(e) => dispatch({ type: 'SET_ECO_FILTER', payload: e.target.value })}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">All Eco Ratings</option>
-            <option value="eco-high-low">🍃 High to Low</option>
-            <option value="eco-low-high">🍃 Low to High</option>
+            <option value="all">Sort By</option>
+            <option value="value-low-high">By Value (Low to High)</option>
+            <option value="value-high-low">By Value (High to Low)</option>
+            <option value="popularity">By Popularity</option>
+            <option value="eco-high-low" style={{ color: 'green' }}>By Green Rating (High to Low)</option>
           </select>
         </div>
 

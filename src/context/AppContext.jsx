@@ -3,6 +3,8 @@ import { dummyProducts, dummyUsers } from '../data/dummyData';
 
 const AppContext = createContext();
 
+const COIN_LIMIT = 100;
+
 const initialState = {
   user: null,
   isAuthenticated: false,
@@ -120,15 +122,36 @@ function appReducer(state, action) {
         ...state,
         products: [...state.products, action.payload]
       };
-    case 'UPDATE_USER_COINS':
+    case 'UPDATE_USER_COINS': {
+      const { coins, carbonReduction, historyEntry } = action.payload;
+      let updatedUser = {
+        ...state.user,
+        greenCoins: coins,
+        carbonReduction: carbonReduction || state.user.carbonReduction,
+      };
+      if (historyEntry) {
+        updatedUser.greenCoinHistory = [
+          ...(state.user.greenCoinHistory || []),
+          historyEntry,
+        ];
+      }
+      if (coins >= COIN_LIMIT && !(updatedUser.greenCoinHistory || []).some(e => e.type === 'limit')) {
+        updatedUser.greenCoinHistory = [
+          ...(updatedUser.greenCoinHistory || []),
+          {
+            id: `limit-${Date.now()}`,
+            date: new Date().toISOString(),
+            description: `Green Coin limit of ${COIN_LIMIT} reached`,
+            amount: 0,
+            type: 'limit',
+          },
+        ];
+      }
       return {
         ...state,
-        user: {
-          ...state.user,
-          greenCoins: action.payload.coins,
-          carbonReduction: action.payload.carbonReduction || state.user.carbonReduction
-        }
+        user: updatedUser,
       };
+    }
     case 'ADD_NOTIFICATION':
       return {
         ...state,
@@ -139,15 +162,28 @@ function appReducer(state, action) {
         ...state,
         notifications: state.notifications.filter(notif => notif.id !== action.payload)
       };
-    case 'SELECT_COUPON':
+    case 'SELECT_COUPON': {
+      const coupon = action.payload;
+      const entry = {
+        id: `redeem-${Date.now()}`,
+        date: new Date().toISOString(),
+        description: `Redeemed 100 coins for ${coupon.title}`,
+        amount: -100,
+        type: 'Redemption',
+      };
       return {
         ...state,
         user: {
           ...state.user,
-          selectedCoupons: [...(state.user.selectedCoupons || []), action.payload],
-          greenCoins: 0 // Reset coins after selecting coupon
-        }
+          selectedCoupons: [...(state.user.selectedCoupons || []), { ...coupon, redeemedAt: new Date().toISOString() }],
+          greenCoins: 0,
+          greenCoinHistory: [
+            ...(state.user.greenCoinHistory || []),
+            entry,
+          ],
+        },
       };
+    }
     default:
       return state;
   }
@@ -201,34 +237,67 @@ export function AppProvider({ children }) {
 
   const addGreenCoins = (coins, reason, carbonReduction = 0) => {
     if (state.user) {
-      const newCoins = Math.min(100, state.user.greenCoins + coins);
+      const prevCoins = state.user.greenCoins;
+      let allowedCoins = coins;
+      let capEntry = null;
+      if (prevCoins + coins > COIN_LIMIT) {
+        allowedCoins = COIN_LIMIT - prevCoins;
+        if (allowedCoins < 0) allowedCoins = 0;
+        capEntry = {
+          id: `cap-${Date.now()}`,
+          date: new Date().toISOString(),
+          description: `Coin limit of ${COIN_LIMIT} reached — excess coins not added`,
+          amount: 0,
+          type: 'limit',
+        };
+      }
+      const newCoins = Math.min(COIN_LIMIT, prevCoins + coins);
       const newCarbonReduction = state.user.carbonReduction + carbonReduction;
-      
-      dispatch({ 
-        type: 'UPDATE_USER_COINS', 
-        payload: { 
-          coins: newCoins, 
-          carbonReduction: newCarbonReduction 
-        } 
-      });
-
-      dispatch({
-        type: 'ADD_NOTIFICATION',
-        payload: {
-          id: Date.now(),
-          message: `+${coins} Green Coins earned for ${reason}!`,
-          type: 'success'
-        }
-      });
-
-      if (newCoins === 100) {
+      const entry = allowedCoins > 0 ? {
+        id: `earn-${Date.now()}`,
+        date: new Date().toISOString(),
+        description: `${allowedCoins > 0 ? '+' : ''}${allowedCoins} coins earned for ${reason}`,
+        amount: allowedCoins,
+        type: 'Earning',
+      } : null;
+      if (entry) {
+        dispatch({
+          type: 'UPDATE_USER_COINS',
+          payload: {
+            coins: newCoins,
+            carbonReduction: newCarbonReduction,
+            historyEntry: entry,
+          },
+        });
+      }
+      if (capEntry) {
+        dispatch({
+          type: 'UPDATE_USER_COINS',
+          payload: {
+            coins: newCoins,
+            carbonReduction: newCarbonReduction,
+            historyEntry: capEntry,
+          },
+        });
+      }
+      if (allowedCoins > 0) {
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          payload: {
+            id: Date.now(),
+            message: `+${allowedCoins} Green Coins earned for ${reason}!`,
+            type: 'success',
+          },
+        });
+      }
+      if (capEntry) {
         dispatch({
           type: 'ADD_NOTIFICATION',
           payload: {
             id: Date.now() + 1,
-            message: 'Progress bar full! Select a coupon reward!',
-            type: 'reward'
-          }
+            message: `Coin limit of ${COIN_LIMIT} reached — excess coins not added`,
+            type: 'reward',
+          },
         });
       }
     }
@@ -255,11 +324,15 @@ export function AppProvider({ children }) {
       filtered = filtered.filter(product => product.category === state.categoryFilter);
     }
 
-    // Eco filter
+    // Eco filter and value sorting
     if (state.ecoFilter === 'eco-high-low') {
       filtered.sort((a, b) => b.ecoRating - a.ecoRating);
     } else if (state.ecoFilter === 'eco-low-high') {
       filtered.sort((a, b) => a.ecoRating - b.ecoRating);
+    } else if (state.ecoFilter === 'value-low-high') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (state.ecoFilter === 'value-high-low') {
+      filtered.sort((a, b) => b.price - a.price);
     }
 
     return filtered;

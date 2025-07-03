@@ -5,6 +5,7 @@ import BuyerDashboard from '../buyer/BuyerDashboard';
 import SellerDashboard from '../seller/SellerDashboard';
 import CartPage from '../buyer/CartPage';
 import OrdersPage from '../buyer/OrdersPage';
+import GreenCoinHistory from '../buyer/GreenCoinHistory';
 
 function Dashboard() {
   const { userType, currentView } = useApp();
@@ -16,6 +17,10 @@ function Dashboard() {
     
     if (currentView === 'orders') {
       return <OrdersPage />;
+    }
+
+    if (currentView === 'greenCoinHistory') {
+      return <GreenCoinHistory isPage />;
     }
 
     return userType === 'buyer' ? <BuyerDashboard /> : <SellerDashboard />;
