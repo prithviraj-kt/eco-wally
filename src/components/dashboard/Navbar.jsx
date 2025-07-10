@@ -137,9 +137,10 @@ function Navbar() {
             )}
 
             {/* User Menu */}
-            <div className="relative">
+            <div className="relative"
+                 onMouseEnter={() => setShowUserMenu(true)}
+                 onMouseLeave={() => setShowUserMenu(false)}>
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="bg-blue-600 p-2 rounded-full">
@@ -151,7 +152,7 @@ function Navbar() {
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                <div className="absolute right-0 mt-2 -mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
                   <button
                     onClick={toggleUserType}
                     className="flex items-center space-x-2 w-full px-4 py-2 text-left hover:bg-gray-50"
