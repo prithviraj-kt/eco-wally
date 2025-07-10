@@ -9,7 +9,6 @@ import {
   Users,
   Star
 } from 'lucide-react';
-import { Modal } from '../common/Notifications';
 
 function SellerStats() {
   const { user, products, orders } = useApp();
@@ -257,6 +256,30 @@ function SellerStats() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Seller's Listed Products */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Listed Products</h3>
+        {sellerProducts.length === 0 ? (
+          <div className="text-gray-500">You have not listed any products yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sellerProducts.map(product => (
+              <div key={product.id} className="border rounded-lg p-4 flex flex-col bg-gray-50">
+                <div className="font-medium text-gray-900 mb-1">{product.name}</div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <Leaf className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-green-700">Eco Rating: {product.ecoRating}</span>
+                </div>
+                <div className="text-sm text-gray-700 mb-1">Price: ${product.price}</div>
+                {product.description && (
+                  <div className="text-xs text-gray-500 mt-1">{product.description}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
