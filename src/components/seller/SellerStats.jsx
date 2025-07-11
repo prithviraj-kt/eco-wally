@@ -9,7 +9,7 @@ import {
   Users,
   Star
 } from 'lucide-react';
-import { Modal } from '../common/Notifications';
+
 
 function SellerStats() {
   const { user, products, orders } = useApp();
@@ -256,6 +256,100 @@ function SellerStats() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Seller's Listed Products */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">My Products</h3>
+        {sellerProducts.length === 0 ? (
+          <div className="text-gray-600">You have not listed any products yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {sellerProducts.map(product => (
+              <SellerProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// SellerProductCard: visually similar to buyer's ProductCard, but no cart button
+function SellerProductCard({ product }) {
+  const isEcoFriendly = product.ecoRating >= 3;
+  const carbonImpact = product.carbonFootprint;
+  const renderEcoRating = (rating) => (
+    Array.from({ length: 5 }, (_, i) => (
+      <Leaf
+        key={i}
+        className={`h-4 w-4 ${i < rating ? 'text-green-500' : 'text-gray-300'}`}
+        fill="currentColor"
+      />
+    ))
+  );
+  return (
+    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+      {/* Product Image */}
+      <div className="relative">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-48 object-cover"
+        />
+        {/* Eco Badge */}
+        {isEcoFriendly && (
+          <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+            Eco-Friendly
+          </div>
+        )}
+        {/* Discount Badge */}
+        {product.originalPrice > product.price && (
+          <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+            Save ${ (product.originalPrice - product.price).toFixed(2) }
+          </div>
+        )}
+      </div>
+      {/* Product Info */}
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+          {product.name}
+        </h3>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          {product.description}
+        </p>
+        {/* Eco Rating */}
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="text-sm text-gray-600">Eco Rating:</span>
+          <div className="flex space-x-1">
+            {renderEcoRating(product.ecoRating)}
+          </div>
+        </div>
+        {/* Carbon Impact */}
+        <div className="flex items-center space-x-2 mb-3">
+          {carbonImpact < 0 ? (
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          ) : (
+            <TrendingUp className="h-4 w-4 text-red-500" />
+          )}
+          <span className={`text-sm font-medium ${carbonImpact < 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {carbonImpact < 0 ? 'Saves' : 'Adds'} {Math.abs(carbonImpact)} kg CO₂
+          </span>
+        </div>
+        
+        {/* Price */}
+        <div className="flex items-center justify-between mt-2">
+          <div>
+            <span className="text-lg font-bold text-gray-900">
+              ${product.price}
+            </span>
+            {product.originalPrice > product.price && (
+              <span className="text-sm text-gray-500 line-through ml-2">
+                ${product.originalPrice}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

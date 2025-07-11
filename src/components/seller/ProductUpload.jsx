@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Upload, Leaf, Calculator, Zap } from 'lucide-react';
 import main from "./Model"
 function ProductUpload() {
-  const { dispatch, addGreenCoins } = useApp();
+  const { dispatch, addGreenCoins, user } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -66,7 +66,7 @@ function ProductUpload() {
       originalPrice: Number(formData.originalPrice) || Number(formData.price),
       stock: Number(formData.stock),
       ...aiGenerated,
-      seller: 'Your Store',
+      seller: user?.name || 'Unknown Seller',
       image: formData.image || 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=400'
     };
     
